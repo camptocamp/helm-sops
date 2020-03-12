@@ -53,4 +53,9 @@ else
 fi
 ```
 
-To enable it, run `git config --global diff.sops.textconv sops-git-diff-helper`
+To enable it, run `git config --global diff.sops.textconv sops-git-diff-helper` and add the following lines to the `.gitattributes` file in your Git repository:
+
+```
+secrets.yaml diff=sops
+secrets-*.yaml diff=sops
+```

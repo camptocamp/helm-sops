@@ -33,6 +33,10 @@ To pass these encrypted value files to Helm, just invoke Helm Sops with the same
 `helm template . --values secrets.yaml --values secrets-production.yaml`  
 depending on how Helm Sops was deployed).
 
+## Example application
+
+An example application as well as an example Argo CD setup to deploy it can be found [here](https://github.com/camptocamp/argocd-helm-sops-example).
+
 ## Git diff helper
 
 The following script (`sops-git-diff-helper`) can be placed in the *PATH* to be used as a Git diff helper for Sops encrypted value files:

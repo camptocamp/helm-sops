@@ -160,13 +160,15 @@ func runHelm() (errs []error) {
 					default:
 					}
 
-					cleartextSecretFile, err := os.OpenFile(cleartextSecretFilename, os.O_RDONLY, 0)
+					cleartextSecretFile, err := os.OpenFile(cleartextSecretFilename, os.O_RDWR, 0)
 
 					if err != nil {
 						*errs = append(*errs, fmt.Errorf("failed to open cleartext secret pipe '%s' in pipe closer: %s", cleartextSecretFilename, err))
 
 						return
 					}
+
+					<-pipeWriterUnlockedChannel
 
 					defer func() {
 						err := cleartextSecretFile.Close()

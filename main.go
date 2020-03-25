@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -20,7 +21,7 @@ var (
 
 func init() {
 	valuesArgRegexp = regexp.MustCompile("^(-f|--values)(?:=(.+))?$")
-	secretFilenameRegexp = regexp.MustCompile("^(secrets(?:(?:-|\\.|_).+)?).yaml$")
+	secretFilenameRegexp = regexp.MustCompile("^((?:.*/)?secrets(?:(?:-|\\.|_).+)?.yaml)$")
 }
 
 func runHelm() (errs []error) {
@@ -74,7 +75,7 @@ func runHelm() (errs []error) {
 
 			if secretFilenameRegexpMatches := secretFilenameRegexp.FindStringSubmatch(filename); secretFilenameRegexpMatches != nil {
 				secretFilename := secretFilenameRegexpMatches[0]
-				cleartextSecretFilename := fmt.Sprintf("%s/%s.plain.yaml", temporaryDirectory, secretFilenameRegexpMatches[1])
+				cleartextSecretFilename := fmt.Sprintf("%s/%x", temporaryDirectory, sha256.Sum256([]byte(secretFilename)))
 
 				cleartextSecrets, err := decrypt.File(secretFilename, "yaml")
 

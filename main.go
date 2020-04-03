@@ -61,6 +61,7 @@ func runHelm() (errs []error) {
 		}
 	}()
 
+loop:
 	for args := os.Args[1:]; len(args) > 0; args = args[1:] {
 		arg := args[0]
 
@@ -73,7 +74,7 @@ func runHelm() (errs []error) {
 			case len(args) > 1:
 				filename = args[1]
 			default:
-				break
+				break loop
 			}
 
 			if secretFilenameRegexpMatches := secretFilenameRegexp.FindStringSubmatch(filename); secretFilenameRegexpMatches != nil {

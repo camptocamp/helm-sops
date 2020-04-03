@@ -28,13 +28,16 @@ func runHelm() (errs []error) {
 	var helmPath string
 	var err error
 
-	if path.Base(os.Args[0]) == "helm" {
-		helmPath, err = exec.LookPath("_helm")
+	switch executableName := path.Base(os.Args[0]); executableName {
+	case "helm", "helm2", "helm3":
+		executableName = fmt.Sprintf("_%s", executableName)
+
+		helmPath, err = exec.LookPath(executableName)
 
 		if err != nil {
-			return append(errs, fmt.Errorf("failed to find Helm binary '_helm'"))
+			return append(errs, fmt.Errorf("failed to find Helm binary '%s'", executableName))
 		}
-	} else {
+	default:
 		helmPath, err = exec.LookPath("helm")
 
 		if err != nil {

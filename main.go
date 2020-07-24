@@ -198,6 +198,7 @@ loop:
 
 	cmd := exec.Command(helmPath, os.Args[1:]...)
 
+	cmd.Env = os.Environ()
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

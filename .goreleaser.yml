@@ -1,0 +1,21 @@
+project_name: "helm-sops"
+
+before:
+  hooks:
+    - "go mod download"
+
+builds:
+  - binary: "helm-sops"
+    flags: "-trimpath"
+    ldflags: "-s -w"
+    mod_timestamp: "{{ $.CommitTimestamp }}"
+    env:
+      - "CGO_ENABLED=0"
+
+release:
+  prerelease: "auto"
+
+changelog:
+  filters:
+    exclude:
+      - "^(refactor|style|test|docs|ci)(\\([^)]+\\))?(!)?:"

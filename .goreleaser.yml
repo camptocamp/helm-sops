@@ -13,7 +13,7 @@ builds:
       - "CGO_ENABLED=0"
 
 release:
-  prerelease: "auto"
+  prerelease: "false"
 
 changelog:
   filters:

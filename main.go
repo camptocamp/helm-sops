@@ -222,10 +222,12 @@ loop:
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	err = cmd.Run()
-
-	if err != nil {
-		return append(errs, fmt.Errorf("failed to run Helm: %s", err))
+	if err := cmd.Run(); err != nil {
+		if _, ok := err.(*exec.ExitError); ok {
+			return append(errs, err)
+		} else {
+			return append(errs, fmt.Errorf("failed to run Helm: %s", err))
+		}
 	}
 
 	return
@@ -233,12 +235,17 @@ loop:
 
 func main() {
 	errs := runHelm()
-
 	exitCode := 0
 
 	for _, err := range errs {
 		fmt.Fprintf(os.Stderr, "[helm-sops] Error: %s\n", err)
+	}
 
+	if len(errs) == 1 {
+		if exitError, ok := errs[0].(*exec.ExitError); ok {
+			exitCode = exitError.ExitCode()
+		}
+	} else if len(errs) > 1 {
 		exitCode = 1
 	}
 

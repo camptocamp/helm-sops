@@ -2,7 +2,10 @@ module github.com/camptocamp/helm-sops
 
 go 1.20
 
-require go.mozilla.org/sops/v3 v3.7.3
+require (
+	go.mozilla.org/sops/v3 v3.7.3
+	gopkg.in/yaml.v3 v3.0.1
+)
 
 require (
 	cloud.google.com/go/compute v1.5.0 // indirect
@@ -82,7 +85,6 @@ require (
 	gopkg.in/ini.v1 v1.66.4 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/urfave/cli.v1 v1.20.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 replace go.mozilla.org/sops/v3 v3.7.3 => github.com/camptocamp/sops/v3 v3.7.4-0.20230517081230-891507a64d12

@@ -1,0 +1,41 @@
+myapp1: t00m4nys3cr3tzupdated
+app2:
+    db:
+        user: eve
+        password: c4r1b0u
+        # private key for secret operations in app2
+    key: |
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIBPAIBAAJBAPTMNIyHuZtpLYc7VsHQtwOkWYobkUblmHWRmbXzlAX6K8tMf3Wf
+        ImcbNkqAKnELzFAPSBeEMhrBN0PyOC9lYlMCAwEAAQJBALXD4sjuBn1E7Y9aGiMz
+        bJEBuZJ4wbhYxomVoQKfaCu+kH80uLFZKoSz85/ySauWE8LgZcMLIBoiXNhDKfQL
+        vHECIQD6tCG9NMFWor69kgbX8vK5Y+QL+kRq+9HK6yZ9a+hsLQIhAPn4Ie6HGTjw
+        fHSTXWZpGSan7NwTkIu4U5q2SlLjcZh/AiEA78NYRRBwGwAYNUqzutGBqyXKUl4u
+        Erb0xAEyVV7e8J0CIQC8VBY8f8yg+Y7Kxbw4zDYGyb3KkXL10YorpeuZR4LuQQIg
+        bKGPkMM4w5blyE1tqGN0T7sJwEx+EUOgacRNqM2ljVA=
+        -----END RSA PRIVATE KEY-----
+number: 1.234568e+09
+an_array:
+- secretuser1
+- secretuser2
+- somelongvalueAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+- some other value
+somebooleans:
+- true
+- false
+this:
+    is:
+        a:
+            nested:
+                value: with something secret in it
+                # sops supports unencrypted fields
+                # by adding the `_unencrypted` suffix
+                # to any key
+somelist_unencrypted:
+- all elements of this list
+- remain in clear text
+- because of the _encrypted suffix in the key
+nested_unencrypted:
+    this:
+        is:
+            all: going to remain in clear text

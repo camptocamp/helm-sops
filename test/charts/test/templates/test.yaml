@@ -1,0 +1,7 @@
+---
+myapp1: {{ .Values.myapp1 | quote }}
+somebooleans: |
+  {{- .Values.somebooleans | toYaml | nindent 2 }}
+this_is_a_nested_value: {{ .Values.this.is.a.nested.value | quote }}
+somelist_unencrypted: |
+  {{- .Values.somelist_unencrypted | toYaml | nindent 2 }}

@@ -2,6 +2,10 @@ package main
 
 import (
 	"os"
+	"os/exec"
+	"io"
+	"bytes"
+	"sync"
     "testing"
 )
 
@@ -107,5 +111,64 @@ func TestMkPipe(t *testing.T) {
 }
 
 func TestRunHelm(t *testing.T) {
-	// TODO
+	reader, writer, err := os.Pipe()
+	if err != nil {
+		panic(err)
+	}
+	os.Stdout = writer
+	wg := new(sync.WaitGroup)
+	var out1 bytes.Buffer
+	go func() {
+		wg.Add(1)
+		defer wg.Done()
+		_, err = io.Copy(&out1, reader)
+		if err != nil {
+			t.Errorf("io.Copy error: %s", err)
+		}
+	}()
+
+	os.Args = []string{
+		"./helm-sops",
+		"template",
+		"./test/charts/test",
+		"--values=test/charts/test/values-enc.yaml",
+	}
+	g_hw.RunHelm()
+	writer.Close()
+	wg.Wait()
+
+
+	reader, writer, err = os.Pipe()
+	if err != nil {
+		panic(err)
+	}
+	var out2 bytes.Buffer
+	go func() {
+		wg.Add(1)
+		defer wg.Done()
+		_, err = io.Copy(&out2, reader)
+		if err != nil {
+			t.Errorf("io.Copy error: %s", err)
+		}
+	}()
+
+	args := []string{
+		g_hw.helmBinPath,
+		"template",
+		"./test/charts/test",
+		"--values=test/charts/test/values-dec.yaml",
+	}
+	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Env = os.Environ()
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = writer
+	cmd.Stderr = os.Stderr
+
+	cmd.Run()
+	writer.Close()
+	wg.Wait()
+
+	if !bytes.Equal(out1.Bytes(), out2.Bytes()) {
+		t.Errorf("unexpected RunHelm output: \n%s", out1.String())
+	}
 }

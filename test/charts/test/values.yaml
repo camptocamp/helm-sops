@@ -1,0 +1,15 @@
+# Default values for test.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+myapp1: ""
+somebooleans: []
+this:
+  is:
+    a:
+      nested:
+        value: ""
+somelist_unencrypted: []

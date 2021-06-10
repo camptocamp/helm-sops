@@ -2,7 +2,7 @@ project_name: "helm-sops"
 
 before:
   hooks:
-    - "go mod download"
+    - "go mod vendor"
 
 builds:
   - binary: "helm-sops"

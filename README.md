@@ -26,7 +26,7 @@ Alternatively, Helm Sops executable can be renamed `helm` before deploying it. W
 
 ## Usage
 
-Create encrypted value files using [Sops](https://github.com/mozilla/sops) and name them using the `^secrets((-|\.|_).+)?\.yaml$` pattern (for example `secrets.yaml`, `secrets-production.yaml` or `secrets.lab.yaml`).
+Create encrypted value files using [Sops](https://github.com/mozilla/sops)
 
 To pass these encrypted value files to Helm, just invoke Helm Sops with the same arguments which would be used for the Helm invocation (for example  
 `helm-sops template . --values secrets.yaml --values secrets-production.yaml` or  
@@ -60,6 +60,5 @@ fi
 To enable it, run `git config --global diff.sops.textconv sops-git-diff-helper` and add the following lines to the `.gitattributes` file in your Git repository:
 
 ```
-secrets.yaml diff=sops
-secrets-*.yaml diff=sops
+*.yaml diff=sops
 ```

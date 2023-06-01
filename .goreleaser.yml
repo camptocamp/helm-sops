@@ -6,6 +6,9 @@ before:
 
 builds:
   - binary: "helm-sops"
+    goos:
+      - "linux"
+      - "darwin"
     flags: "-trimpath"
     ldflags: "-s -w"
     mod_timestamp: "{{ $.CommitTimestamp }}"

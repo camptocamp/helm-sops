@@ -1,12 +1,13 @@
 package main
 
 import (
-	"io/ioutil"
+	"os"
+
 	"gopkg.in/yaml.v3"
 )
 
 func DetectSopsYaml(filename string) (bool, error) {
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return false, err
 	}
@@ -14,7 +15,7 @@ func DetectSopsYaml(filename string) (bool, error) {
 	var sf map[string]interface{}
 	err = yaml.Unmarshal(data, &sf)
 	if err != nil {
-	    return false, err
+		return false, err
 	}
 
 	if _, ok := sf["sops"]; ok {

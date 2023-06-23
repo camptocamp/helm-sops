@@ -23,6 +23,7 @@ type HelmWrapper struct {
 	pipeWriterWaitGroup sync.WaitGroup
 	valuesArgRegexp     *regexp.Regexp
 	temporaryDirectory  string
+	cleanPipeFns        []func()
 }
 
 func NewHelmWrapper() (*HelmWrapper, error) {
@@ -57,9 +58,24 @@ func (c *HelmWrapper) errorf(msg string, a ...interface{}) error {
 }
 
 func (c *HelmWrapper) pipeWriter(outPipeName string, data []byte) {
+	var pipeReadyToRead bool
 	c.pipeWriterWaitGroup.Add(1)
 	defer c.pipeWriterWaitGroup.Done()
 
+	// Clean function used to unblock the FIFO pipe if helm executable crashed
+	cleanFn := func() {
+		// Only open the FIFO in read mode if it's already opened in write mode and is blocking
+		if pipeReadyToRead {
+			pipe, err := os.OpenFile(outPipeName, os.O_RDONLY, 0640)
+			if err != nil {
+				_ = c.errorf("failed to open cleartext secret pipe for cleaning '%s' in pipe reader: %s", outPipeName, err)
+			}
+			pipe.Close()
+		}
+	}
+	c.cleanPipeFns = append(c.cleanPipeFns, cleanFn)
+
+	pipeReadyToRead = true
 	cleartextSecretFile, err := os.OpenFile(outPipeName, os.O_WRONLY, 0)
 	if err != nil {
 		_ = c.errorf("failed to open cleartext secret pipe '%s' in pipe writer: %s", outPipeName, err)
@@ -76,6 +92,8 @@ func (c *HelmWrapper) pipeWriter(outPipeName string, data []byte) {
 	if err != nil {
 		_ = c.errorf("failed to write cleartext secret to pipe '%s': %s", outPipeName, err)
 	}
+
+	pipeReadyToRead = false
 }
 
 func (c *HelmWrapper) valuesArg(args []string) (string, string, error) {
@@ -96,7 +114,6 @@ func (c *HelmWrapper) valuesArg(args []string) (string, string, error) {
 	}
 
 	cleartextSecretFilename := fmt.Sprintf("%s/%x", c.temporaryDirectory, sha256.Sum256([]byte(filename)))
-
 	return filename, cleartextSecretFilename, nil
 }
 
@@ -190,7 +207,7 @@ func (c *HelmWrapper) RunHelm() {
 
 		go c.pipeWriter(cleartextSecretFilename, cleartextSecrets)
 	}
-	defer c.pipeWriterWaitGroup.Wait()
+	defer c.cleanPipes()
 
 	cmd := exec.Command(c.helmBinPath, os.Args[1:]...)
 	cmd.Env = os.Environ()
@@ -203,4 +220,12 @@ func (c *HelmWrapper) RunHelm() {
 		c.ExitCode = cmd.ProcessState.ExitCode()
 		_ = c.errorf("failed to run Helm: %s", err)
 	}
+}
+
+// Cleaning function defered from RunHelm function and used to do pipe cleanup
+func (c *HelmWrapper) cleanPipes() {
+	for _, cleanFn := range c.cleanPipeFns {
+		cleanFn()
+	}
+	c.pipeWriterWaitGroup.Wait()
 }

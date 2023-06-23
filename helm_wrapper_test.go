@@ -1,18 +1,18 @@
 package main
 
 import (
+	"bytes"
+	"io"
 	"os"
 	"os/exec"
-	"io"
-	"bytes"
 	"sync"
-    "testing"
+	"testing"
 )
 
 var g_hw *HelmWrapper
 
 func init() {
-    g_hw, _ = NewHelmWrapper()
+	g_hw, _ = NewHelmWrapper()
 }
 
 func TestNewHelmWrapper(t *testing.T) {
@@ -23,7 +23,7 @@ func TestErrorf(t *testing.T) {
 	g_hw.Errors = []error{}
 	err := g_hw.errorf("test %s %d %t", "a", 1, true)
 	if g_hw.Errors[0] != err {
-		t.Errorf("errorf(test %%s %%d %%t, a, 1, true) = %s; want %s",  g_hw.Errors[0], err)
+		t.Errorf("errorf(test %%s %%d %%t, a, 1, true) = %s; want %s", g_hw.Errors[0], err)
 	}
 }
 
@@ -34,17 +34,17 @@ func TestPipeWriter(t *testing.T) {
 func TestValuesArg(t *testing.T) {
 	res, _, err := g_hw.valuesArg([]string{"-f", "cat.yaml"})
 	if res != "cat.yaml" || err != nil {
-		t.Errorf("valuesArg([]string{\"-f\", \"cat.yaml\"}) = %s, %s; want cat.yaml, <nil>",  res, "cat.yaml")
+		t.Errorf("valuesArg([]string{\"-f\", \"cat.yaml\"}) = %s, %s; want cat.yaml, <nil>", res, "cat.yaml")
 	}
 
 	res, _, err = g_hw.valuesArg([]string{"--values", "cat.yaml"})
 	if res != "cat.yaml" || err != nil {
-		t.Errorf("valuesArg([]string{\"--valuse\", \"cat.yaml\"}) = %s, %s; want cat.yaml, <nil>",  res, "cat.yaml")
+		t.Errorf("valuesArg([]string{\"--valuse\", \"cat.yaml\"}) = %s, %s; want cat.yaml, <nil>", res, "cat.yaml")
 	}
 
 	res, _, err = g_hw.valuesArg([]string{"--values=cat.yaml"})
 	if res != "cat.yaml" || err != nil {
-		t.Errorf("valuesArg([]string{\"--values=cat.yaml\"}) = %s, %s; want cat.yaml, <nil>",  res, "cat.yaml")
+		t.Errorf("valuesArg([]string{\"--values=cat.yaml\"}) = %s, %s; want cat.yaml, <nil>", res, "cat.yaml")
 	}
 }
 
@@ -133,10 +133,10 @@ func TestRunHelm(t *testing.T) {
 		"./test/charts/test",
 		"--values=test/charts/test/values-enc.yaml",
 	}
+
 	g_hw.RunHelm()
 	writer.Close()
 	wg.Wait()
-
 
 	reader, writer, err = os.Pipe()
 	if err != nil {

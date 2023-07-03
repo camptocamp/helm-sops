@@ -118,8 +118,8 @@ func TestRunHelm(t *testing.T) {
 	os.Stdout = writer
 	wg := new(sync.WaitGroup)
 	var out1 bytes.Buffer
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
 		defer wg.Done()
 		_, err = io.Copy(&out1, reader)
 		if err != nil {
@@ -143,8 +143,8 @@ func TestRunHelm(t *testing.T) {
 		panic(err)
 	}
 	var out2 bytes.Buffer
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
 		defer wg.Done()
 		_, err = io.Copy(&out2, reader)
 		if err != nil {

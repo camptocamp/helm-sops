@@ -23,7 +23,8 @@ type HelmWrapper struct {
 	pipeWriterWaitGroup sync.WaitGroup
 	valuesArgRegexp     *regexp.Regexp
 	temporaryDirectory  string
-	cleanPipeFns        []func()
+	cleanPipeFns        chan func()
+	cleanPipeWaitGroup  sync.WaitGroup
 }
 
 func NewHelmWrapper() (*HelmWrapper, error) {
@@ -31,6 +32,7 @@ func NewHelmWrapper() (*HelmWrapper, error) {
 
 	c.Errors = []error{}
 	c.pipeWriterWaitGroup = sync.WaitGroup{}
+	c.cleanPipeWaitGroup = sync.WaitGroup{}
 	c.valuesArgRegexp = regexp.MustCompile("^(-f|--values)(?:=(.+))?$")
 
 	// Determine the name of the helm binary by examining our binary name
@@ -58,14 +60,17 @@ func (c *HelmWrapper) errorf(msg string, a ...interface{}) error {
 }
 
 func (c *HelmWrapper) pipeWriter(outPipeName string, data []byte) {
-	var pipeReadyToRead bool
-	c.pipeWriterWaitGroup.Add(1)
+	var dataChan chan []byte
 	defer c.pipeWriterWaitGroup.Done()
+
+	dataChan = make(chan []byte, 1)
+	dataChan <- data
 
 	// Clean function used to unblock the FIFO pipe if helm executable crashed
 	cleanFn := func() {
 		// Only open the FIFO in read mode if it's already opened in write mode and is blocking
-		if pipeReadyToRead {
+		if len(dataChan) != 0 {
+			close(dataChan)
 			pipe, err := os.OpenFile(outPipeName, os.O_RDONLY, 0640)
 			if err != nil {
 				_ = c.errorf("failed to open cleartext secret pipe for cleaning '%s' in pipe reader: %s", outPipeName, err)
@@ -73,9 +78,9 @@ func (c *HelmWrapper) pipeWriter(outPipeName string, data []byte) {
 			pipe.Close()
 		}
 	}
-	c.cleanPipeFns = append(c.cleanPipeFns, cleanFn)
+	c.cleanPipeFns <- cleanFn
+	c.cleanPipeWaitGroup.Done()
 
-	pipeReadyToRead = true
 	cleartextSecretFile, err := os.OpenFile(outPipeName, os.O_WRONLY, 0)
 	if err != nil {
 		_ = c.errorf("failed to open cleartext secret pipe '%s' in pipe writer: %s", outPipeName, err)
@@ -88,12 +93,10 @@ func (c *HelmWrapper) pipeWriter(outPipeName string, data []byte) {
 		}
 	}()
 
-	_, err = cleartextSecretFile.Write(data)
+	_, err = cleartextSecretFile.Write(<-dataChan)
 	if err != nil {
 		_ = c.errorf("failed to write cleartext secret to pipe '%s': %s", outPipeName, err)
 	}
-
-	pipeReadyToRead = false
 }
 
 func (c *HelmWrapper) valuesArg(args []string) (string, string, error) {
@@ -164,6 +167,8 @@ func (c *HelmWrapper) RunHelm() {
 	}
 	defer cleanFn()
 
+	c.cleanPipeFns = make(chan func(), len(os.Args)-1)
+
 	// Loop through arguments looking for --values or -f.
 	// If we find a values argument, check if file has a sops section indicating it is encrypted.
 	// Setup a named pipe and write the decrypted data into that for helm.
@@ -205,10 +210,13 @@ func (c *HelmWrapper) RunHelm() {
 		}
 		defer cleanFn()
 
+		c.pipeWriterWaitGroup.Add(1)
+		c.cleanPipeWaitGroup.Add(1)
 		go c.pipeWriter(cleartextSecretFilename, cleartextSecrets)
 	}
 	defer c.cleanPipes()
 
+	c.cleanPipeWaitGroup.Wait()
 	cmd := exec.Command(c.helmBinPath, os.Args[1:]...)
 	cmd.Env = os.Environ()
 	cmd.Stdin = os.Stdin
@@ -224,7 +232,8 @@ func (c *HelmWrapper) RunHelm() {
 
 // Cleaning function defered from RunHelm function and used to do pipe cleanup
 func (c *HelmWrapper) cleanPipes() {
-	for _, cleanFn := range c.cleanPipeFns {
+	close(c.cleanPipeFns)
+	for cleanFn := range c.cleanPipeFns {
 		cleanFn()
 	}
 	c.pipeWriterWaitGroup.Wait()

@@ -185,11 +185,17 @@ func (c *HelmWrapper) RunHelm() {
 		}
 
 		var encrypted bool
-		encrypted, err = DetectSopsYaml(filename)
+		file, err := ReadAndUnmarshalYaml(filename)
 		if err != nil {
-			_ = c.errorf("error checking if file is encrypted: %s", err)
+			c.ExitCode = 1
+			_ = c.errorf("failed to read file '%s': %s", filename, err)
 			return
 		}
+		encrypted = DetectSopsKey(file)
+		if err != nil {
+			return
+		}
+
 		if !encrypted {
 			continue
 		}
@@ -230,7 +236,7 @@ func (c *HelmWrapper) RunHelm() {
 	}
 }
 
-// Cleaning function defered from RunHelm function and used to do pipe cleanup
+// Cleaning function deferred from RunHelm function and used to do pipe cleanup
 func (c *HelmWrapper) cleanPipes() {
 	close(c.cleanPipeFns)
 	for cleanFn := range c.cleanPipeFns {

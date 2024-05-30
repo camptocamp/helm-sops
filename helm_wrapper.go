@@ -185,13 +185,13 @@ func (c *HelmWrapper) RunHelm() {
 		}
 
 		var encrypted bool
-		file, err := ReadAndUnmarshalYaml(filename)
+		fileData, err := ReadAndUnmarshalYaml(filename)
 		if err != nil {
 			c.ExitCode = 1
-			_ = c.errorf("failed to read file '%s': %s", filename, err)
+			_ = c.errorf("failed to read or unmarshal file '%s': %s", filename, err)
 			return
 		}
-		encrypted = DetectSopsKey(file)
+		encrypted = DetectSopsKey(fileData)
 		if err != nil {
 			return
 		}

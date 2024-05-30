@@ -1,9 +1,9 @@
 package main
 
 import (
-    "testing"
-    "io/ioutil"
-    "os"
+	"io/ioutil"
+	"os"
+	"testing"
 )
 
 func TestDetectSopsFile(t *testing.T) {
@@ -18,7 +18,8 @@ func TestDetectSopsFile(t *testing.T) {
 	tmp.WriteString(`---
 secret: hello
 `)
-	res, err := DetectSopsYaml(tmp.Name())
+	fileData, err := ReadAndUnmarshalYaml(tmp.Name())
+	res := DetectSopsKey(fileData)
 	if res != false || err != nil {
 		t.Errorf("DetectSopsYaml(tmp) = %t, %v; want false, <nil>", res, err)
 	}
@@ -36,7 +37,8 @@ sops:
     pgp: []
     version: 3.6.1
 `)
-	res, err = DetectSopsYaml(tmp.Name())
+	fileData, err = ReadAndUnmarshalYaml(tmp.Name())
+	res = DetectSopsKey(fileData)
 	if res != true || err != nil {
 		t.Errorf("DetectSopsYaml(tmp) = %t, %v; want true, <nil>", res, err)
 	}

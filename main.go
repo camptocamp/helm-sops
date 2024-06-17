@@ -37,5 +37,9 @@ func main() {
 		fmt.Fprintf(os.Stderr, "[helm-sops] Error: %s\n", err)
 	}
 
+	if len(w.Errors) > 0 && w.ExitCode == 0 {
+		w.ExitCode = 10
+	}
+
 	os.Exit(w.ExitCode)
 }

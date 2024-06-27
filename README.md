@@ -62,3 +62,6 @@ To enable it, run `git config --global diff.sops.textconv sops-git-diff-helper` 
 ```
 *.yaml diff=sops
 ```
+
+## Contribute and test
+In order to run test, the dev sops pgp key should be imported first, as explained [here](https://github.com/getsops/sops?tab=readme-ov-file#21test-with-the-dev-pgp-key).

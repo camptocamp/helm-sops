@@ -116,10 +116,6 @@ func (c *HelmWrapper) valuesArg(args []string) (string, string, error) {
 		return "", "", c.errorf("missing filename after -f or --values")
 	}
 
-	if filename == "-" {
-		filename = "/dev/stdin"
-	}
-
 	cleartextSecretFilename := fmt.Sprintf("%s/%x", c.temporaryDirectory, sha256.Sum256([]byte(filename)))
 	return filename, cleartextSecretFilename, nil
 }
@@ -184,7 +180,7 @@ func (c *HelmWrapper) RunHelm() {
 		if err != nil {
 			return
 		}
-		if filename == "" {
+		if filename == "" || filename == "-" {
 			continue
 		}
 

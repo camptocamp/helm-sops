@@ -15,6 +15,14 @@ builds:
     env:
       - "CGO_ENABLED=0"
 
+dockers_v2:
+  - images:
+      - "ghcr.io/camptocamp/helm-sops"
+    tags:
+      - "{{ .Version }}"
+    extra_files:
+      - "_helm"
+
 release:
   prerelease: "false"
 

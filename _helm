@@ -1,0 +1,5 @@
+#! /usr/bin/sh
+
+helm="${HELM_BIN:-/usr/bin/helm}"
+
+exec "$helm" "$@"
